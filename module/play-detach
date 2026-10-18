@@ -25,6 +25,7 @@ Commands:
   set [pkg...]      Replace the whole list (no packages = clear)
   clear             Re-attach everything
   import <file>     Detach packages listed in a file (one per line)
+  status            Show when the Play Store last loaded the list
   help              Show this help
 
 Changes apply right away. The Play Store is restarted, no reboot needed.
@@ -119,6 +120,31 @@ case "$cmd" in
         { read_list; printf '%s\n' "$pkgs"; } | write_list
         restart_store
         echo "Imported $(printf '%s\n' "$pkgs" | wc -l) package(s)"
+        ;;
+    status)
+        # status is written by the module each time the Play Store starts
+        loaded=0
+        packages=0
+        if [ -f "$DATA_DIR/status" ]; then
+            for kv in $(cat "$DATA_DIR/status"); do
+                case "$kv" in
+                    loaded=*) loaded=${kv#loaded=} ;;
+                    packages=*) packages=${kv#packages=} ;;
+                esac
+            done
+        fi
+        list_time=$(stat -c %Y "$LIST" 2>/dev/null || echo 0)
+        echo "loaded=$loaded"
+        echo "loaded_packages=$packages"
+        echo "list_changed=$list_time"
+        echo "detached=$(read_list | wc -l)"
+        if [ "$loaded" -eq 0 ]; then
+            echo "The Play Store has not loaded the list yet."
+        elif [ "$loaded" -ge "$list_time" ]; then
+            echo "Active: the Play Store uses the current list."
+        else
+            echo "The list changed, it applies when the Play Store opens."
+        fi
         ;;
     help | -h | --help | '')
         usage

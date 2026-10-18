@@ -35,6 +35,7 @@
 #include <sys/stat.h>
 #include <sys/sysmacros.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "zygisk.hpp"
@@ -47,6 +48,8 @@ namespace {
 
 constexpr char kStorePkg[] = "com.android.vending";
 constexpr char kListPath[] = "/data/adb/play-detach/detach.list";
+constexpr char kStatusPath[] = "/data/adb/play-detach/status";
+constexpr char kStatusTmp[] = "/data/adb/play-detach/status.tmp";
 constexpr char kBinderLib[] = "/libbinder.so";
 constexpr char kTransactSym[] = "_ZN7android14IPCThreadState8transactEijRKNS_6ParcelEPS1_j";
 
@@ -161,6 +164,33 @@ bool writeAll(int fd, const void* buf, size_t size) {
     return true;
 }
 
+// Counts the package lines in a list buffer (same rules as parseList, without
+// validating characters, which is enough for the status file).
+size_t countEntries(const char* buf, size_t size) {
+    size_t count = 0, pos = 0;
+    while (pos < size) {
+        while (pos < size && (buf[pos] == ' ' || buf[pos] == '\t' || buf[pos] == '\r')) pos++;
+        if (pos < size && buf[pos] != '\n' && buf[pos] != '#') count++;
+        while (pos < size && buf[pos] != '\n') pos++;
+        pos++;
+    }
+    return count;
+}
+
+// Overwrites a tiny status file (one line, never grows) so the WebUI can tell
+// that the Play Store loaded the current list. Written atomically.
+void writeStatus(size_t count) {
+    char line[64];
+    int len = snprintf(line, sizeof(line), "loaded=%lld packages=%zu\n", static_cast<long long>(time(nullptr)), count);
+    if (len <= 0) return;
+    int fd = open(kStatusTmp, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
+    if (fd < 0) return;
+    bool ok = writeAll(fd, line, static_cast<size_t>(len));
+    close(fd);
+    if (ok) rename(kStatusTmp, kStatusPath);
+    else unlink(kStatusTmp);
+}
+
 // Runs as root in the Zygisk companion daemon. Protocol: uint32 size, then
 // size bytes of detach.list. A size of 0 means "nothing to do".
 void companionHandler(int client) {
@@ -180,7 +210,7 @@ void companionHandler(int client) {
     }
 
     if (writeAll(client, &size, sizeof(size)) && size > 0) {
-        writeAll(client, data, size);
+        if (writeAll(client, data, size)) writeStatus(countEntries(data, size));
     }
     free(data);
 }

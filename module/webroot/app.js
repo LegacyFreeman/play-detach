@@ -301,12 +301,21 @@ async function refreshStatus() {
     return;
   }
   const noun = count === 1 ? "app" : "apps";
-  const res = await exec("logcat -d -s PlayDetach | tail -n 1");
-  const last = res.stdout.trim();
-  if (/active in Play Store/.test(last)) {
-    setStatus("ok", `Active in Play Store - ${count} ${noun} detached`);
-  } else if (last && /\bE PlayDetach\b|: .*(failed|not found|unsupported)/i.test(last)) {
+  const [st, log] = await Promise.all([exec(`${CLI} status`), exec("logcat -d -s PlayDetach | tail -n 1")]);
+
+  const kv = {};
+  for (const l of lines(st.stdout)) {
+    const m = l.match(/^(\w+)=(\d+)$/);
+    if (m) kv[m[1]] = Number(m[2]);
+  }
+  const last = log.stdout.trim();
+
+  if (/\sE PlayDetach\b/.test(last)) {
     setStatus("error", `Problem: ${last.replace(/^.*PlayDetach:\s*/, "")}`);
+  } else if (kv.loaded > 0 && kv.loaded >= kv.list_changed) {
+    setStatus("ok", `Active in Play Store - ${count} ${noun} detached`);
+  } else if (!kv.loaded && /active in Play Store/.test(last)) {
+    setStatus("ok", `Active in Play Store - ${count} ${noun} detached`);
   } else {
     setStatus("warn", `${count} ${noun} detached - applies when the Play Store opens`);
   }

@@ -36,10 +36,11 @@ su -c '/data/adb/modules/play-detach/play-detach list'
 su -c '/data/adb/modules/play-detach/play-detach add com.example.app'
 su -c '/data/adb/modules/play-detach/play-detach remove com.example.app'
 su -c '/data/adb/modules/play-detach/play-detach clear'
+su -c '/data/adb/modules/play-detach/play-detach status'
 su -c '/data/adb/modules/play-detach/play-detach help'
 ```
 
-The list is stored in `/data/adb/play-detach/detach.list`, one package per line.
+The list is stored in `/data/adb/play-detach/detach.list`, one package per line. Each time the Play Store starts, the module overwrites a one-line `status` file in the same folder, which `play-detach status` and the WebUI use to show whether the current list is active.
 
 To check that the module works:
 

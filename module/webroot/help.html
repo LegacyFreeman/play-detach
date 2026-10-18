@@ -49,9 +49,10 @@
       <h2>Status line</h2>
       <ul>
         <li><strong>Active in Play Store</strong> - the module is working in the Play Store.</li>
-        <li><strong>Applies when the Play Store opens</strong> - the list is saved; open the Play Store once to load it.</li>
+        <li><strong>Applies when the Play Store opens</strong> - the list changed after the Play Store last started; it is saved and loads the next time the Play Store opens.</li>
         <li><strong>Problem</strong> - the module could not start in the Play Store. The message shows the reason; see Troubleshooting below.</li>
       </ul>
+      <p><strong>Orange right after a change is normal.</strong> When you turn a switch on or off, the Play Store is closed and the new list is saved. The dot stays orange until the Play Store starts again and loads the new list, then it turns green. Open the Play Store once, or just wait until it starts in the background.</p>
     </section>
 
     <section>
@@ -62,6 +63,7 @@
         <div class="cmd"><span>Detach one or more apps</span><pre>su -c '/data/adb/modules/play-detach/play-detach add com.example.app'</pre></div>
         <div class="cmd"><span>Re-attach an app</span><pre>su -c '/data/adb/modules/play-detach/play-detach remove com.example.app'</pre></div>
         <div class="cmd"><span>Re-attach everything</span><pre>su -c '/data/adb/modules/play-detach/play-detach clear'</pre></div>
+        <div class="cmd"><span>Check if the current list is active</span><pre>su -c '/data/adb/modules/play-detach/play-detach status'</pre></div>
         <div class="cmd"><span>All commands</span><pre>su -c '/data/adb/modules/play-detach/play-detach help'</pre></div>
       </div>
     </section>
