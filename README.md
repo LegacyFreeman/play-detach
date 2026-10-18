@@ -14,6 +14,7 @@ The Play Store updates apps on its own, even when auto-update is turned off for 
 - One switch per app, changes apply right away without a reboot
 - Status line that shows whether the module is active in the Play Store
 - Command line tool for terminals, plus a short `play-detach` command in Termux
+- Backup and restore of the list, with a built-in folder browser to pick where it is saved
 - Optional `detach.txt` in the module zip to detach apps at install time
 - Works only inside the Play Store process, nothing else is touched
 
@@ -21,7 +22,7 @@ The Play Store updates apps on its own, even when auto-update is turned off for 
 
 - arm64 device with Android 10 or newer
 - A working Zygisk: ReZygisk, Zygisk Next or NeoZygisk on KernelSU, SukiSU-Ultra or APatch, or Zygisk enabled in Magisk
-- Do not install it together with zygisk-detach, both modules change the same Play Store calls
+- zygisk-detach must not run at the same time, both modules change the same Play Store calls. If it is installed, Play Detach copies its detached apps during install and offers to remove it (Vol+), keep it (Vol-), or disables it if no key is pressed
 
 ## Install
 
@@ -37,6 +38,8 @@ su -c '/data/adb/modules/play-detach/play-detach add com.example.app'
 su -c '/data/adb/modules/play-detach/play-detach remove com.example.app'
 su -c '/data/adb/modules/play-detach/play-detach clear'
 su -c '/data/adb/modules/play-detach/play-detach status'
+su -c '/data/adb/modules/play-detach/play-detach backup'
+su -c '/data/adb/modules/play-detach/play-detach restore /sdcard/Download/play-detach-backup.txt'
 su -c '/data/adb/modules/play-detach/play-detach help'
 ```
 

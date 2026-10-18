@@ -57,16 +57,35 @@
       <div class="skeleton"></div><div class="skeleton"></div>
     </div>
     <div class="list-foot" id="foot" hidden>
-      <button class="text-btn" id="reattach-all" type="button">Re-attach all apps</button>
+      <button class="text-btn" id="backup" type="button">Back up list</button>
+      <button class="text-btn" id="restore" type="button">Restore backup</button>
+      <button class="text-btn" id="reattach-all" type="button">Re-attach all</button>
     </div>
   </main>
 
   <div class="toast" id="toast" role="status"></div>
 
+  <div class="sheet-backdrop" id="picker" hidden>
+    <div class="sheet picker" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+      <h2 id="picker-title">Save backup</h2>
+      <div class="crumbs" id="picker-path"></div>
+      <div class="picker-list" id="picker-list"></div>
+      <div class="picker-save" id="picker-save">
+        <label for="picker-name">File name</label>
+        <input id="picker-name" type="text" spellcheck="false" autocomplete="off" autocapitalize="off">
+        <div class="picker-warn" id="picker-warn" hidden>A file with this name is already here and will be replaced.</div>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" id="picker-cancel" type="button">Cancel</button>
+        <button class="btn primary" id="picker-ok" type="button">Save here</button>
+      </div>
+    </div>
+  </div>
+
   <div class="sheet-backdrop" id="confirm" hidden>
     <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
       <h2 id="confirm-title">Re-attach all apps?</h2>
-      <p>The Play Store will see every detached app again and offer updates for them.</p>
+      <p id="confirm-text">The Play Store will see every detached app again and offer updates for them.</p>
       <div class="actions">
         <button class="btn ghost" id="confirm-no" type="button">Cancel</button>
         <button class="btn primary" id="confirm-yes" type="button">Re-attach all</button>

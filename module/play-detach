@@ -5,6 +5,8 @@
 
 DATA_DIR=/data/adb/play-detach
 LIST="$DATA_DIR/detach.list"
+# Internal storage as seen by root; shows up as Download/ in file managers
+BACKUP_FILE=/data/media/0/Download/play-detach-backup.txt
 STORE=com.android.vending
 
 die() {
@@ -26,6 +28,8 @@ Commands:
   clear             Re-attach everything
   import <file>     Detach packages listed in a file (one per line)
   status            Show when the Play Store last loaded the list
+  backup [file]     Save the list (default: Download/play-detach-backup.txt)
+  restore [file]    Replace the list with a backup
   help              Show this help
 
 Changes apply right away. The Play Store is restarted, no reboot needed.
@@ -43,6 +47,23 @@ check_pkgs() {
     for p in "$@"; do
         valid_pkg "$p" || die "invalid package name: '$p'"
     done
+}
+
+# Prints the package lines of a file (no blanks or comments) after checking
+# each whole line, so "com.a com.b" on one line is rejected.
+read_pkg_file() {
+    out=$(tr -d '\r' <"$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' -e '/^#/d')
+    old_ifs=$IFS
+    IFS='
+'
+    for p in $out; do
+        valid_pkg "$p" || {
+            IFS=$old_ifs
+            die "invalid package name in $1: '$p'"
+        }
+    done
+    IFS=$old_ifs
+    printf '%s\n' "$out"
 }
 
 # Prints the current list, one package per line, without blanks or comments.
@@ -113,10 +134,8 @@ case "$cmd" in
         ;;
     import)
         [ -f "$1" ] || die "file not found: $1"
-        pkgs=$(tr -d '\r' <"$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' -e '/^#/d')
+        pkgs=$(read_pkg_file "$1") || exit 1
         [ -n "$pkgs" ] || die "no packages in $1"
-        # shellcheck disable=SC2086
-        check_pkgs $pkgs
         { read_list; printf '%s\n' "$pkgs"; } | write_list
         restart_store
         echo "Imported $(printf '%s\n' "$pkgs" | wc -l) package(s)"
@@ -145,6 +164,33 @@ case "$cmd" in
         else
             echo "The list changed, it applies when the Play Store opens."
         fi
+        ;;
+    backup)
+        file="${1:-$BACKUP_FILE}"
+        dir=$(dirname "$file")
+        [ -d "$dir" ] || die "folder not found: $dir"
+        count=$(read_list | wc -l)
+        tmp="$file.tmp.$$"
+        {
+            echo "# Play Detach backup, $(date '+%Y-%m-%d %H:%M'), $count package(s)"
+            read_list
+        } >"$tmp" || {
+            rm -f "$tmp"
+            die "cannot write $file"
+        }
+        mv -f "$tmp" "$file" || die "cannot write $file"
+        # Same owner as the folder, so file managers and apps can read it
+        chown "$(stat -c %u:%g "$dir")" "$file" 2>/dev/null
+        chmod 664 "$file"
+        echo "Saved $count package(s) to $file"
+        ;;
+    restore)
+        file="${1:-$BACKUP_FILE}"
+        [ -f "$file" ] || die "backup not found: $file"
+        pkgs=$(read_pkg_file "$file") || exit 1
+        printf '%s\n' "$pkgs" | sed '/^$/d' | write_list
+        restart_store
+        echo "Restored $(read_list | wc -l) package(s) from $file"
         ;;
     help | -h | --help | '')
         usage

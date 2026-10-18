@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.2
+
+- Backup and restore: save your detached apps to any folder in internal storage and restore them later, from the Detached tab in the WebUI or with `play-detach backup` / `play-detach restore`
+- When zygisk-detach is installed, Play Detach now copies its detached apps and asks what to do with it: Vol+ removes it together with the files it leaves behind, Vol- keeps it, and with no key press in 15 seconds it is disabled so the two modules do not conflict
+- `import` and `detach.txt` now reject a line that holds more than one package name instead of splitting it
+
 ## v1.0.1
 
 - The status line now stays green after the phone sleeps. It used to turn orange when Android dropped old log lines, even though the module was working

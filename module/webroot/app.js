@@ -213,7 +213,8 @@ function render() {
   if (items.length === 0) frag.append(emptyState());
   else items.forEach((a) => frag.append(makeRow(a)));
   listEl.replaceChildren(frag);
-  $("foot").hidden = !(tab === "detached" && !query && items.length > 0);
+  $("foot").hidden = !(tab === "detached" && !query);
+  $("reattach-all").hidden = items.length === 0;
   updateCounts();
 }
 
@@ -228,6 +229,8 @@ function updateCounts() {
   $("n-user").textContent = user;
   $("n-system").textContent = system;
   $("n-detached").textContent = detached;
+  // Never let an empty list overwrite a good backup.
+  $("backup").disabled = detached === 0;
   return detached;
 }
 
@@ -283,6 +286,196 @@ async function reattachAll() {
   render();
   refreshStatus();
   toast("All apps re-attached");
+}
+
+// ---------------------------------------------------------------------------
+// Backup / restore with a built-in folder browser
+// ---------------------------------------------------------------------------
+
+const STORAGE = "/data/media/0"; // internal storage as seen by root
+const sq = (str) => `'${str.replace(/'/g, `'\\''`)}'`;
+const niceDir = (dir) => "Internal storage" + dir.slice(STORAGE.length);
+
+const FOLDER_ICON =
+  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h3.6l2 2h7.4A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/></svg>';
+const FILE_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>';
+const UP_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+
+function lastDir() {
+  try {
+    const d = localStorage.getItem("pd-backup-dir");
+    if (d && d.startsWith(STORAGE)) return d;
+  } catch {}
+  return `${STORAGE}/Download`;
+}
+function rememberDir(dir) {
+  try {
+    localStorage.setItem("pd-backup-dir", dir);
+  } catch {}
+}
+
+const picker = { mode: "save", dir: STORAGE, files: new Set() };
+
+async function listDir(dir) {
+  const res = await exec(
+    `cd ${sq(dir)} && for f in *; do [ -e "$f" ] || continue; if [ -d "$f" ]; then echo "d $f"; else echo "f $f"; fi; done`
+  );
+  if (res.errno !== 0) return null;
+  const dirs = [], files = [];
+  for (const line of res.stdout.split("\n")) {
+    if (line.length < 3) continue;
+    const name = line.slice(2);
+    if (line[0] === "d") dirs.push(name);
+    else files.push(name);
+  }
+  const cmp = (x, y) => x.localeCompare(y, undefined, { sensitivity: "base" });
+  return { dirs: dirs.sort(cmp), files: files.sort(cmp) };
+}
+
+function entryButton(icon, label, cls, onClick) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = `entry ${cls}`;
+  btn.innerHTML = icon;
+  const span = document.createElement("span");
+  span.textContent = label;
+  btn.append(span);
+  btn.addEventListener("click", onClick);
+  return btn;
+}
+
+async function openDir(dir) {
+  const data = await listDir(dir);
+  if (!data) {
+    toast("Could not open this folder", true);
+    return;
+  }
+  picker.dir = dir;
+  picker.files = new Set(data.files);
+
+  // Breadcrumbs
+  const crumbs = $("picker-path");
+  crumbs.replaceChildren();
+  const parts = dir.slice(STORAGE.length).split("/").filter(Boolean);
+  let path = STORAGE;
+  const addCrumb = (label, target) => {
+    if (crumbs.childElementCount) crumbs.append("\u203a");
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = label;
+    b.addEventListener("click", () => openDir(target));
+    crumbs.append(b);
+  };
+  addCrumb("Internal storage", STORAGE);
+  for (const part of parts) {
+    path += "/" + part;
+    addCrumb(part, path);
+  }
+
+  // Entries
+  const list = $("picker-list");
+  const frag = document.createDocumentFragment();
+  if (dir !== STORAGE) {
+    frag.append(entryButton(UP_ICON, "Up one folder", "up", () => openDir(dir.slice(0, dir.lastIndexOf("/")))));
+  }
+  for (const d of data.dirs) {
+    if (d.startsWith(".")) continue;
+    frag.append(entryButton(FOLDER_ICON, d, "folder", () => openDir(`${dir}/${d}`)));
+  }
+  if (picker.mode === "restore") {
+    for (const f of data.files) {
+      if (f.startsWith(".") || !f.toLowerCase().endsWith(".txt")) continue;
+      frag.append(entryButton(FILE_ICON, f, "file", () => askRestore(`${dir}/${f}`)));
+    }
+  }
+  if (!frag.childElementCount || (frag.childElementCount === 1 && dir !== STORAGE)) {
+    const empty = document.createElement("div");
+    empty.className = "picker-empty";
+    empty.textContent = picker.mode === "restore" ? "No folders or .txt files here." : "No folders here.";
+    frag.append(empty);
+  }
+  list.replaceChildren(frag);
+  list.scrollTop = 0;
+  checkName();
+}
+
+function cleanName() {
+  let name = $("picker-name").value.trim().replace(/[\/\\]/g, "");
+  if (name && !name.toLowerCase().endsWith(".txt")) name += ".txt";
+  return name;
+}
+
+function checkName() {
+  if (picker.mode !== "save") return;
+  const name = cleanName();
+  $("picker-warn").hidden = !picker.files.has(name);
+  $("picker-ok").disabled = !name;
+}
+
+function openPicker(mode) {
+  picker.mode = mode;
+  const save = mode === "save";
+  $("picker-title").textContent = save ? "Save backup" : "Choose a backup";
+  $("picker-save").hidden = !save;
+  $("picker-ok").hidden = !save;
+  if (save) {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    $("picker-name").value = `play-detach-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.txt`;
+  }
+  $("picker").hidden = false;
+  openDir(lastDir());
+}
+
+async function saveBackup() {
+  const name = cleanName();
+  if (!name) return;
+  const file = `${picker.dir}/${name}`;
+  $("picker").hidden = true;
+  const res = await exec(`${CLI} backup ${sq(file)}`);
+  if (res.errno !== 0) {
+    toast(res.stderr.trim() || "Could not save the backup", true);
+    return;
+  }
+  rememberDir(picker.dir);
+  const n = updateCounts();
+  toast(`Saved ${n} ${n === 1 ? "app" : "apps"} to ${niceDir(file)}`);
+}
+
+let confirmAsk = null; // set in setupUi
+
+function askRestore(file) {
+  confirmAsk(
+    "Restore this backup?",
+    `Your current list is replaced with the apps saved in ${niceDir(file)}.`,
+    "Restore",
+    () => restore(file)
+  );
+}
+
+async function restore(file) {
+  $("picker").hidden = true;
+  const res = await exec(`${CLI} restore ${sq(file)}`);
+  if (res.errno !== 0) {
+    toast(res.stderr.trim().replace(STORAGE, "Internal storage") || "Could not restore the backup", true);
+    return;
+  }
+  rememberDir(file.slice(0, file.lastIndexOf("/")));
+  for (const [pkg, a] of apps) {
+    if (!a.installed) apps.delete(pkg);
+    else a.detached = false;
+  }
+  try {
+    await loadDetached();
+  } catch (e) {
+    toast(String(e.message || e), true);
+  }
+  render();
+  refreshStatus();
+  const n = updateCounts();
+  toast(`Restored ${n} ${n === 1 ? "app" : "apps"} from backup`);
 }
 
 // ---------------------------------------------------------------------------
@@ -356,14 +549,34 @@ function setupUi() {
   );
 
   const confirm = $("confirm");
-  $("reattach-all").addEventListener("click", () => (confirm.hidden = false));
+  let pending = null;
+  const ask = (title, text, yes, action) => {
+    $("confirm-title").textContent = title;
+    $("confirm-text").textContent = text;
+    $("confirm-yes").textContent = yes;
+    pending = action;
+    confirm.hidden = false;
+  };
+  $("reattach-all").addEventListener("click", () =>
+    ask("Re-attach all apps?", "The Play Store will see every detached app again and offer updates for them.", "Re-attach all", reattachAll)
+  );
+  confirmAsk = ask;
+  $("backup").addEventListener("click", () => openPicker("save"));
+  $("restore").addEventListener("click", () => openPicker("restore"));
+  const pickerEl = $("picker");
+  $("picker-cancel").addEventListener("click", () => (pickerEl.hidden = true));
+  pickerEl.addEventListener("click", (e) => {
+    if (e.target === pickerEl) pickerEl.hidden = true;
+  });
+  $("picker-ok").addEventListener("click", saveBackup);
+  $("picker-name").addEventListener("input", checkName);
   $("confirm-no").addEventListener("click", () => (confirm.hidden = true));
   confirm.addEventListener("click", (e) => {
     if (e.target === confirm) confirm.hidden = true;
   });
   $("confirm-yes").addEventListener("click", () => {
     confirm.hidden = true;
-    reattachAll();
+    if (pending) pending();
   });
 }
 

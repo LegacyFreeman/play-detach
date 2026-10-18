@@ -46,6 +46,12 @@
     </section>
 
     <section>
+      <h2>Backup and restore</h2>
+      <p>Open the <strong>Detached</strong> tab. <strong>Back up list</strong> opens your internal storage: pick a folder, change the file name if you like and tap <strong>Save here</strong>. <strong>Restore backup</strong> opens the same browser: go to the folder and tap the backup file.</p>
+      <p>Restoring replaces the current list with the one in the file. Backups are plain text files with one package per line, so you can also edit them or use them as <code>detach.txt</code>. They stay on your storage when the module is removed.</p>
+    </section>
+
+    <section>
       <h2>Status line</h2>
       <ul>
         <li><strong>Active in Play Store</strong> - the module is working in the Play Store.</li>
@@ -64,6 +70,8 @@
         <div class="cmd"><span>Re-attach an app</span><pre>su -c '/data/adb/modules/play-detach/play-detach remove com.example.app'</pre></div>
         <div class="cmd"><span>Re-attach everything</span><pre>su -c '/data/adb/modules/play-detach/play-detach clear'</pre></div>
         <div class="cmd"><span>Check if the current list is active</span><pre>su -c '/data/adb/modules/play-detach/play-detach status'</pre></div>
+        <div class="cmd"><span>Back up the list to Download</span><pre>su -c '/data/adb/modules/play-detach/play-detach backup'</pre></div>
+        <div class="cmd"><span>Restore a backup</span><pre>su -c '/data/adb/modules/play-detach/play-detach restore /sdcard/Download/play-detach-backup.txt'</pre></div>
         <div class="cmd"><span>All commands</span><pre>su -c '/data/adb/modules/play-detach/play-detach help'</pre></div>
       </div>
     </section>
@@ -84,7 +92,7 @@
       <ul>
         <li>arm64 device with Android 10 or newer</li>
         <li>A working Zygisk: ReZygisk, Zygisk Next or NeoZygisk on KernelSU, SukiSU-Ultra or APatch, or Zygisk enabled in Magisk</li>
-        <li>Do not install it together with zygisk-detach, both modules change the same Play Store calls</li>
+        <li>zygisk-detach must not run at the same time, both modules change the same Play Store calls. If it is installed, Play Detach copies its detached apps during install and offers to remove it (Vol+), keep it (Vol-), or disables it if no key is pressed</li>
       </ul>
     </section>
 
