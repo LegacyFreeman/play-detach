@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play Detach - Help</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="appbar">
+      <svg class="logo" viewBox="0 0 42 42" aria-hidden="true">
+        <g class="ring">
+          <circle cx="21" cy="21" r="19" fill="none" stroke="#c77dff" stroke-width="2" stroke-dasharray="12 5 3 5" stroke-linecap="round"/>
+        </g>
+        <rect x="9" y="15" width="17" height="12" rx="4" fill="#c77dff"/>
+        <rect x="25.5" y="17" width="6" height="2.6" rx="1.2" fill="#c77dff"/>
+        <rect x="25.5" y="22.4" width="6" height="2.6" rx="1.2" fill="#c77dff"/>
+        <polygon points="14.5,18 14.5,24 19.6,21" fill="#22062f"/>
+      </svg>
+      <div class="title">
+        <h1>Help</h1>
+        <div class="sub">Play Detach</div>
+      </div>
+      <a class="icon-btn" id="back" href="index.html" aria-label="Back to apps">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="help">
+    <section>
+      <h2>What it does</h2>
+      <p>The Play Store updates apps on its own, even when auto-update is turned off for them. Play Detach hides the apps you choose from the Play Store, so it never offers or installs updates for them.</p>
+      <p>The apps themselves are not changed. They keep working, and you can update them by hand at any time.</p>
+    </section>
+
+    <section>
+      <h2>How to use it</h2>
+      <ol>
+        <li>Find the app in <strong>User apps</strong> or <strong>System apps</strong>. The search box matches app names and package names.</li>
+        <li>Turn on the switch next to it. The change applies right away and the Play Store is restarted, no reboot needed.</li>
+        <li>The <strong>Detached</strong> tab lists every detached app. Turn a switch off to let the Play Store see that app again.</li>
+      </ol>
+      <p>Apps marked <strong>Not installed</strong> are still on your list but no longer on the phone. Turn them off to remove them from the list.</p>
+    </section>
+
+    <section>
+      <h2>Status line</h2>
+      <ul>
+        <li><strong>Active in Play Store</strong> - the module is working in the Play Store.</li>
+        <li><strong>Applies when the Play Store opens</strong> - the list is saved; open the Play Store once to load it.</li>
+        <li><strong>Problem</strong> - the module could not start in the Play Store. The message shows the reason; see Troubleshooting below.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Command line</h2>
+      <p>Everything in this page can also be done from a terminal with root. In Termux the short command <code>play-detach</code> is installed as well.</p>
+      <div class="cmds">
+        <div class="cmd"><span>Show detached apps</span><pre>su -c '/data/adb/modules/play-detach/play-detach list'</pre></div>
+        <div class="cmd"><span>Detach one or more apps</span><pre>su -c '/data/adb/modules/play-detach/play-detach add com.example.app'</pre></div>
+        <div class="cmd"><span>Re-attach an app</span><pre>su -c '/data/adb/modules/play-detach/play-detach remove com.example.app'</pre></div>
+        <div class="cmd"><span>Re-attach everything</span><pre>su -c '/data/adb/modules/play-detach/play-detach clear'</pre></div>
+        <div class="cmd"><span>All commands</span><pre>su -c '/data/adb/modules/play-detach/play-detach help'</pre></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Detach apps at install time</h2>
+      <p>Put a file named <code>detach.txt</code> in the root of the module zip, with one package name per line. The apps in it are detached while the module installs. Lines starting with <code>#</code> are ignored.</p>
+    </section>
+
+    <section>
+      <h2>How it works</h2>
+      <p>Play Detach is a Zygisk module. It loads only into the Play Store process. When the Play Store asks the system whether a detached app is installed, the module changes that request, so the system answers that the app does not exist.</p>
+      <p>The list is stored in <code>/data/adb/play-detach/detach.list</code>, one package per line. Nothing outside the Play Store is touched.</p>
+    </section>
+
+    <section>
+      <h2>Requirements</h2>
+      <ul>
+        <li>arm64 device with Android 10 or newer</li>
+        <li>A working Zygisk: ReZygisk, Zygisk Next or NeoZygisk on KernelSU, SukiSU-Ultra or APatch, or Zygisk enabled in Magisk</li>
+        <li>Do not install it together with zygisk-detach, both modules change the same Play Store calls</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Troubleshooting</h2>
+      <p>If an app still shows up in the Play Store, close the Play Store, clear its cache in system settings and open it again. Then check the module log:</p>
+      <pre>su -c 'logcat -d -s PlayDetach'</pre>
+      <p>A line with <strong>active in Play Store</strong> means the module works. Any other message names the step that failed, for example a missing Zygisk or a change in a new Android version.</p>
+    </section>
+
+    <section>
+      <h2>How it is built</h2>
+      <ul>
+        <li><strong>Zygisk library</strong> - C++20, built with Android NDK r29 for arm64-v8a. Uses Zygisk API v4, so it runs on ReZygisk, Zygisk Next, NeoZygisk and Magisk. No third-party libraries. Every read from Play Store binder data is bounds-checked, and on anything unexpected the call is passed through untouched.</li>
+        <li><strong>Command line tool</strong> - a plain shell script. The list is written to a temporary file and then swapped in, so the Play Store never reads a half-written list.</li>
+        <li><strong>WebUI</strong> - plain HTML, CSS and JavaScript with no frameworks and no build step. App names and icons come from the root manager's WebUI API. Fonts are bundled, so it works offline.</li>
+        <li><strong>Build</strong> - one <code>build.sh</code> script builds the whole module from source.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Tested on</h2>
+      <p>Poco F6 Pro with the Xiaomi.eu ROM (Android 16), SukiSU-Ultra and ReZygisk. Other devices should work but were not tested.</p>
+    </section>
+
+    <p class="foot">Play Detach by Tears Burn. Based on <a href="https://github.com/j-hc/zygisk-detach">zygisk-detach</a> by j-hc. Apache License 2.0.</p>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="help.js"></script>
+</body>
+</html>

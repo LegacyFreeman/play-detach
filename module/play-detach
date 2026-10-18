@@ -1,0 +1,130 @@
+#!/system/bin/sh
+# Play Detach - command line tool
+# Copyright 2026 Tears Burn (nikakvo). Licensed under the Apache License 2.0.
+# Based on zygisk-detach by j-hc (https://github.com/j-hc/zygisk-detach).
+
+DATA_DIR=/data/adb/play-detach
+LIST="$DATA_DIR/detach.list"
+STORE=com.android.vending
+
+die() {
+    echo "Error: $*" >&2
+    exit 1
+}
+
+usage() {
+    cat <<EOF
+Play Detach - stop the Play Store from updating chosen apps
+
+Usage: play-detach <command> [package...]
+
+Commands:
+  list              Show detached packages
+  add <pkg...>      Detach packages
+  remove <pkg...>   Re-attach packages
+  set [pkg...]      Replace the whole list (no packages = clear)
+  clear             Re-attach everything
+  import <file>     Detach packages listed in a file (one per line)
+  help              Show this help
+
+Changes apply right away. The Play Store is restarted, no reboot needed.
+EOF
+}
+
+valid_pkg() {
+    case "$1" in
+        '' | .* | *..* | *[!A-Za-z0-9._]*) return 1 ;;
+    esac
+    [ ${#1} -le 255 ]
+}
+
+check_pkgs() {
+    for p in "$@"; do
+        valid_pkg "$p" || die "invalid package name: '$p'"
+    done
+}
+
+# Prints the current list, one package per line, without blanks or comments.
+read_list() {
+    [ -f "$LIST" ] || return 0
+    tr -d '\r' <"$LIST" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' -e '/^#/d'
+}
+
+# Replaces the list with stdin (sorted, unique) using an atomic rename, so the
+# Play Store never reads a half-written file.
+write_list() {
+    mkdir -p "$DATA_DIR" || die "cannot create $DATA_DIR"
+    chmod 700 "$DATA_DIR"
+    tmp="$LIST.tmp.$$"
+    sort -u >"$tmp" || {
+        rm -f "$tmp"
+        die "cannot write $tmp"
+    }
+    chmod 600 "$tmp"
+    mv -f "$tmp" "$LIST" || {
+        rm -f "$tmp"
+        die "cannot update $LIST"
+    }
+}
+
+# Runs in the background so the caller (WebUI or terminal) is not kept waiting.
+restart_store() {
+    am force-stop "$STORE" >/dev/null 2>&1 &
+}
+
+[ "$(id -u)" = 0 ] || die "root is required, run: su -c '/data/adb/modules/play-detach/play-detach $*'"
+
+cmd="$1"
+[ $# -gt 0 ] && shift
+
+case "$cmd" in
+    list)
+        read_list
+        ;;
+    add)
+        [ $# -gt 0 ] || die "no package given"
+        check_pkgs "$@"
+        { read_list; printf '%s\n' "$@"; } | write_list
+        restart_store
+        for p in "$@"; do echo "Detached: $p"; done
+        ;;
+    remove)
+        [ $# -gt 0 ] || die "no package given"
+        check_pkgs "$@"
+        current=$(read_list)
+        for p in "$@"; do
+            current=$(printf '%s\n' "$current" | grep -vxF "$p")
+        done
+        printf '%s\n' "$current" | sed '/^$/d' | write_list
+        restart_store
+        for p in "$@"; do echo "Re-attached: $p"; done
+        ;;
+    set)
+        check_pkgs "$@"
+        if [ $# -gt 0 ]; then printf '%s\n' "$@"; else :; fi | write_list
+        restart_store
+        echo "Detached $# package(s)"
+        ;;
+    clear)
+        : | write_list
+        restart_store
+        echo "All apps re-attached"
+        ;;
+    import)
+        [ -f "$1" ] || die "file not found: $1"
+        pkgs=$(tr -d '\r' <"$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d' -e '/^#/d')
+        [ -n "$pkgs" ] || die "no packages in $1"
+        # shellcheck disable=SC2086
+        check_pkgs $pkgs
+        { read_list; printf '%s\n' "$pkgs"; } | write_list
+        restart_store
+        echo "Imported $(printf '%s\n' "$pkgs" | wc -l) package(s)"
+        ;;
+    help | -h | --help | '')
+        usage
+        ;;
+    *)
+        usage >&2
+        die "unknown command: $cmd"
+        ;;
+esac

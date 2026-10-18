@@ -1,0 +1,10 @@
+Play Detach
+Copyright 2026 Tears Burn (nikakvo)
+
+This product is based on zygisk-detach by j-hc
+(https://github.com/j-hc/zygisk-detach), licensed under the Apache License 2.0.
+The Zygisk library, command line tool, installer scripts and WebUI were
+rewritten; the detach technique comes from the original project.
+
+src/zygisk/zygisk.hpp is the Zygisk module API header by John "topjohnwu" Wu,
+distributed under its own permissive license (see the header).
