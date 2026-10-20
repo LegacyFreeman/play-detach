@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="module/banner.png" alt="Play Detach" width="640">
-</p>
+<p align="center"><img src="module/banner.png" alt="Play Detach" width="640"></p>
 
 # Play Detach
 
