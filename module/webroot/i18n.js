@@ -295,7 +295,7 @@ const translations = {
       "приложение",
 
     apps:
-      "приложений",
+      "",
 
     zygisk_module:
       "Модуль Zygisk",
