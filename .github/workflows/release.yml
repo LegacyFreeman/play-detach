@@ -1,46 +1,46 @@
 name: Build and Release
 
 on:
-  workflow_dispatch:
   push:
     tags:
       - "v*"
-      
-on:
+
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Release version"
-        required: true
-        default: "v1.0.3"
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        actions/checkout@v5
+      - name: Checkout source
+        uses: actions/checkout@v5
 
-      - name: Make build script executable
-        run: chmod +x build.sh
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip unzip wget
+
+      - name: Download Android NDK r29
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r29-linux.zip
+          unzip -q android-ndk-r29-linux.zip
+          echo "ANDROID_NDK_HOME=$GITHUB_WORKSPACE/android-ndk-r29" >> $GITHUB_ENV
 
       - name: Build module
-        run: ./build.sh
-
-      - name: Find zip
         run: |
-          find . -type f -name "*.zip"
+          chmod +x build.sh
+          ./build.sh
+
+      - name: Verify ZIP
+        run: |
+          ls -lah out
+          find out -name "*.zip"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            *.zip
-            release/*.zip
-            out/*.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
+          files: out/*.zip
