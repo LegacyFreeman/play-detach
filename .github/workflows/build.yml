@@ -15,23 +15,31 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Make script executable
-        run: chmod +x build.sh
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip unzip wget
+
+      - name: Download Android NDK r29
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r29-linux.zip
+          unzip -q android-ndk-r29-linux.zip
+          echo "ANDROID_NDK_HOME=$GITHUB_WORKSPACE/android-ndk-r29" >> $GITHUB_ENV
 
       - name: Build module
-        run: ./build.sh
+        run: |
+          chmod +x build.sh
+          ./build.sh
 
-      - name: Show generated files
-        run: ls -lah
+      - name: Show output files
+        run: |
+          find out -type f
 
-      - name: Upload artifacts
+      - name: Upload ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: play-detach-build
-          path: |
-            *.zip
-            release/*.zip
-            out/*.zip
-          if-no-files-found: warn
+          name: play-detach
+          path: out/*.zip
+          if-no-files-found: error
