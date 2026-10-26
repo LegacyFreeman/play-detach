@@ -1,5 +1,3 @@
-# .github/workflows/release.yml
-
 name: Build and Release
 
 on:
@@ -60,3 +58,13 @@ jobs:
           git push origin ${{ steps.metadata.outputs.tag }} --force
 
       - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.metadata.outputs.tag }}
+          name: Play Detach ${{ steps.metadata.outputs.version }}
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            out/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
