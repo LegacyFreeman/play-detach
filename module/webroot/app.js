@@ -1,6 +1,8 @@
 // Play Detach WebUI
 // Copyright 2026 Tears Burn (nikakvo). Licensed under the Apache License 2.0.
 
+import { detectLanguage, t } from "./i18n.js";
+
 const MODDIR = "/data/adb/modules/play-detach";
 const CLI = `${MODDIR}/play-detach`;
 const PKG_RE = /^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/;
@@ -12,26 +14,121 @@ const $ = (id) => document.getElementById(id);
 // ---------------------------------------------------------------------------
 
 const ksu = window.ksu;
+
 let callSeq = 0;
 
 function exec(cmd) {
   return new Promise((resolve) => {
     if (!ksu) {
-      resolve({ errno: -1, stdout: "", stderr: "WebUI bridge not available" });
+      resolve({
+        errno: -1,
+        stdout: "",
+        stderr: "WebUI bridge not available"
+      });
       return;
     }
+
     const cb = `pd_exec_${Date.now()}_${callSeq++}`;
+
     window[cb] = (errno, stdout, stderr) => {
       delete window[cb];
-      resolve({ errno, stdout: stdout || "", stderr: stderr || "" });
+
+      resolve({
+        errno,
+        stdout: stdout || "",
+        stderr: stderr || ""
+      });
     };
+
     try {
       ksu.exec(cmd, "{}", cb);
     } catch (e) {
       delete window[cb];
-      resolve({ errno: -1, stdout: "", stderr: String(e) });
+
+      resolve({
+        errno: -1,
+        stdout: "",
+        stderr: String(e)
+      });
     }
   });
+}
+
+async function initLanguage() {
+  await detectLanguage(exec);
+
+  document.title = "Play Detach";
+
+  const helpBtn = $("help-btn");
+  if (helpBtn) {
+    helpBtn.setAttribute(
+      "aria-label",
+      t("help")
+    );
+  }
+
+  $("tab-user-text").textContent =
+    t("user_apps");
+
+  $("tab-detached-text").textContent =
+    t("detached");
+
+  $("tab-system-text").textContent =
+    t("system_apps");
+
+  $("search").placeholder =
+    t("search_placeholder");
+
+  $("search").setAttribute(
+    "aria-label",
+    t("search_placeholder")
+  );
+
+  $("clear").setAttribute(
+    "aria-label",
+    t("clear_search")
+  );
+
+  $("help-btn").setAttribute(
+    "aria-label",
+    t("help")
+  );
+
+  $("backup").textContent =
+    t("backup_list");
+
+  $("restore").textContent =
+    t("restore_backup");
+
+  $("reattach-all").textContent =
+    t("reattach_all");
+
+  $("picker-name-label").textContent =
+    t("file_name");
+
+  $("picker-warn").textContent =
+    t("file_exists");
+
+  $("picker-cancel").textContent =
+    t("cancel");
+
+  $("picker-ok").textContent =
+    t("save_here");
+
+  $("confirm-title").textContent =
+    t("confirm_reattach_title");
+
+  $("confirm-text").textContent =
+    t("confirm_reattach_text");
+
+  $("confirm-no").textContent =
+    t("cancel");
+
+  $("confirm-yes").textContent =
+    t("reattach_all");
+
+  $("status-text").textContent =
+    t("loading");
 }
 
 const hasPkgApi = !!ksu && typeof ksu.listPackages === "function" && typeof ksu.getPackagesInfo === "function";
@@ -54,6 +151,29 @@ function getPackagesInfo(pkgs) {
 
 const lines = (s) => s.split("\n").map((l) => l.trim()).filter(Boolean);
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
+
+function appWord(n) {
+  if (document.documentElement.lang !== "ru") {
+    return n === 1
+      ? t("app")
+      : t("apps");
+  }
+
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+
+  if (mod10 === 1 && mod100 !== 11)
+    return "приложение";
+
+  if (
+    mod10 >= 2 &&
+    mod10 <= 4 &&
+    (mod100 < 12 || mod100 > 14)
+  )
+    return "приложения";
+
+  return "приложений";
+}
 
 // ---------------------------------------------------------------------------
 // State
@@ -94,7 +214,11 @@ async function loadPackages() {
 
 async function loadDetached() {
   const res = await exec(`${CLI} list`);
-  if (res.errno !== 0) throw new Error(res.stderr.trim() || "could not read the detach list");
+  if (res.errno !== 0)
+    throw new Error(
+      res.stderr.trim() ||
+      t("could_not_change_list")
+    );
   for (const pkg of lines(res.stdout)) {
     if (!PKG_RE.test(pkg)) continue;
     const app = apps.get(pkg);
@@ -137,38 +261,61 @@ function makeIcon(app) {
 
 function makeRow(app) {
   const row = document.createElement("label");
+
   row.className = "row" + (app.detached ? " on" : "");
   row.dataset.pkg = app.pkg;
 
   const meta = document.createElement("div");
   meta.className = "meta";
+
   const name = document.createElement("div");
   name.className = "name";
   name.textContent = app.label;
+
   const pkg = document.createElement("div");
   pkg.className = "pkg";
   pkg.textContent = app.pkg;
+
   if (!app.installed) {
     const b = document.createElement("span");
+
     b.className = "badge";
-    b.textContent = "Not installed";
+    b.textContent = t("not_installed");
+
     name.append(b);
   }
+
   meta.append(name, pkg);
 
   const sw = document.createElement("span");
   sw.className = "switch";
+
   const input = document.createElement("input");
+
   input.type = "checkbox";
   input.setAttribute("role", "switch");
-  input.setAttribute("aria-label", `Detach ${app.label}`);
+  input.setAttribute(
+    "aria-label",
+    `${t("detached")} ${app.label}`
+  );
+
   input.checked = app.detached;
-  input.addEventListener("change", () => toggle(app, input, row));
+
+  input.addEventListener("change", () =>
+    toggle(app, input, row)
+  );
+
   const track = document.createElement("span");
   track.className = "track";
+
   sw.append(input, track);
 
-  row.append(makeIcon(app), meta, sw);
+  row.append(
+    makeIcon(app),
+    meta,
+    sw
+  );
+
   return row;
 }
 
@@ -187,10 +334,15 @@ function visibleApps() {
 
 function emptyState() {
   const div = document.createElement("div");
+
   div.className = "empty";
+
   if (query) {
-    div.innerHTML = "<strong>No matches</strong><span>Try another name or package.</span>";
-  } else if (tab === "detached") {
+    div.innerHTML =
+      `<strong>${t("no_matches")}</strong>` +
+      `<span>${t("try_other_package")}</span>`;
+  }
+  else if (tab === "detached") {
     div.innerHTML = `
       <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
         <rect x="8" y="22" width="26" height="20" rx="6" fill="#c77dff"/>
@@ -199,11 +351,17 @@ function emptyState() {
         <polygon points="17,27 17,37 25,32" fill="#22062f"/>
         <rect x="48" y="18" width="10" height="28" rx="4" stroke="#c77dff" stroke-width="3"/>
       </svg>
-      <strong>No detached apps yet</strong>
-      <span>Turn on the switch next to an app to stop Play Store updates for it.</span>`;
-  } else {
-    div.innerHTML = "<strong>No apps here</strong>";
+
+      <strong>${t("no_detached_apps")}</strong>
+
+      <span>${t("no_detached_apps_desc")}</span>
+    `;
   }
+  else {
+    div.innerHTML =
+      `<strong>${t("no_apps_here")}</strong>`;
+  }
+
   return div;
 }
 
@@ -250,42 +408,72 @@ function toast(msg, error = false) {
 
 async function toggle(app, input, row) {
   const on = input.checked;
-  // Show the new state right away; revert only if the command fails.
+
   row.classList.toggle("on", on);
+
   input.disabled = true;
 
-  const res = await exec(`${CLI} ${on ? "add" : "remove"} ${app.pkg}`);
+  const res = await exec(
+    `${CLI} ${on ? "add" : "remove"} ${app.pkg}`
+  );
+
   input.disabled = false;
 
   if (res.errno === 0) {
     app.detached = on;
-    toast(on ? `${app.label} detached` : `${app.label} re-attached`);
+
+    toast(
+      on
+        ? `${app.label} ${t("detached_suffix")}`
+        : `${app.label} ${t("reattached_suffix")}`
+    );
+
     if (!on && !app.installed) {
       apps.delete(app.pkg);
       row.remove();
     }
+
     updateCounts();
     refreshStatus();
   } else {
     input.checked = !on;
+
     row.classList.toggle("on", !on);
-    toast(res.stderr.trim() || "Could not change the list", true);
+
+    toast(
+      res.stderr.trim() ||
+      t("could_not_change_list"),
+      true
+    );
   }
 }
 
 async function reattachAll() {
   const res = await exec(`${CLI} clear`);
+
   if (res.errno !== 0) {
-    toast(res.stderr.trim() || "Could not clear the list", true);
+    toast(
+      res.stderr.trim() ||
+      t("could_not_clear_list"),
+      true
+    );
+
     return;
   }
+
   for (const [pkg, a] of apps) {
-    if (!a.installed) apps.delete(pkg);
-    else a.detached = false;
+    if (!a.installed)
+      apps.delete(pkg);
+    else
+      a.detached = false;
   }
+
   render();
   refreshStatus();
-  toast("All apps re-attached");
+
+  toast(
+    t("all_apps_reattached")
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -294,7 +482,7 @@ async function reattachAll() {
 
 const STORAGE = "/data/media/0"; // internal storage as seen by root
 const sq = (str) => `'${str.replace(/'/g, `'\\''`)}'`;
-const niceDir = (dir) => "Internal storage" + dir.slice(STORAGE.length);
+const niceDir = (dir) => t("internal_storage") + dir.slice(STORAGE.length);
 
 const FOLDER_ICON =
   '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h3.6l2 2h7.4A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/></svg>';
@@ -307,13 +495,13 @@ function lastDir() {
   try {
     const d = localStorage.getItem("pd-backup-dir");
     if (d && d.startsWith(STORAGE)) return d;
-  } catch {}
+  } catch { }
   return `${STORAGE}/Download`;
 }
 function rememberDir(dir) {
   try {
     localStorage.setItem("pd-backup-dir", dir);
-  } catch {}
+  } catch { }
 }
 
 const picker = { mode: "save", dir: STORAGE, files: new Set() };
@@ -349,7 +537,10 @@ function entryButton(icon, label, cls, onClick) {
 async function openDir(dir) {
   const data = await listDir(dir);
   if (!data) {
-    toast("Could not open this folder", true);
+    toast(
+      t("could_not_open_folder"),
+      true
+    );
     return;
   }
   picker.dir = dir;
@@ -368,7 +559,10 @@ async function openDir(dir) {
     b.addEventListener("click", () => openDir(target));
     crumbs.append(b);
   };
-  addCrumb("Internal storage", STORAGE);
+  addCrumb(
+    t("internal_storage"),
+    STORAGE
+  );
   for (const part of parts) {
     path += "/" + part;
     addCrumb(part, path);
@@ -378,7 +572,11 @@ async function openDir(dir) {
   const list = $("picker-list");
   const frag = document.createDocumentFragment();
   if (dir !== STORAGE) {
-    frag.append(entryButton(UP_ICON, "Up one folder", "up", () => openDir(dir.slice(0, dir.lastIndexOf("/")))));
+    frag.append(
+      entryButton(
+        UP_ICON,
+        t("up_one_folder"),
+        "up", () => openDir(dir.slice(0, dir.lastIndexOf("/")))));
   }
   for (const d of data.dirs) {
     if (d.startsWith(".")) continue;
@@ -393,7 +591,10 @@ async function openDir(dir) {
   if (!frag.childElementCount || (frag.childElementCount === 1 && dir !== STORAGE)) {
     const empty = document.createElement("div");
     empty.className = "picker-empty";
-    empty.textContent = picker.mode === "restore" ? "No folders or .txt files here." : "No folders here.";
+    empty.textContent =
+      picker.mode === "restore"
+        ? t("no_backup_files")
+        : t("no_folders");
     frag.append(empty);
   }
   list.replaceChildren(frag);
@@ -417,7 +618,10 @@ function checkName() {
 function openPicker(mode) {
   picker.mode = mode;
   const save = mode === "save";
-  $("picker-title").textContent = save ? "Save backup" : "Choose a backup";
+  $("picker-title").textContent =
+    save
+      ? t("save_backup")
+      : t("choose_backup");
   $("picker-save").hidden = !save;
   $("picker-ok").hidden = !save;
   if (save) {
@@ -436,21 +640,30 @@ async function saveBackup() {
   $("picker").hidden = true;
   const res = await exec(`${CLI} backup ${sq(file)}`);
   if (res.errno !== 0) {
-    toast(res.stderr.trim() || "Could not save the backup", true);
+    toast(
+      res.stderr.trim() ||
+      t("could_not_save_backup"),
+      true
+    );
     return;
   }
   rememberDir(picker.dir);
   const n = updateCounts();
-  toast(`Saved ${n} ${n === 1 ? "app" : "apps"} to ${niceDir(file)}`);
+  toast(
+    `${n} ${n === 1
+      ? t("app")
+      : t("apps")
+    } • ${niceDir(file)}`
+  );
 }
 
 let confirmAsk = null; // set in setupUi
 
 function askRestore(file) {
   confirmAsk(
-    "Restore this backup?",
-    `Your current list is replaced with the apps saved in ${niceDir(file)}.`,
-    "Restore",
+    t("restore_backup_title"),
+    `${t("restore_backup_text")} ${niceDir(file)}.`,
+    t("restore"),
     () => restore(file)
   );
 }
@@ -459,7 +672,16 @@ async function restore(file) {
   $("picker").hidden = true;
   const res = await exec(`${CLI} restore ${sq(file)}`);
   if (res.errno !== 0) {
-    toast(res.stderr.trim().replace(STORAGE, "Internal storage") || "Could not restore the backup", true);
+    toast(
+      res.stderr
+        .trim()
+        .replace(
+          STORAGE,
+          t("internal_storage")
+        ) ||
+      t("could_not_restore_backup"),
+      true
+    );
     return;
   }
   rememberDir(file.slice(0, file.lastIndexOf("/")));
@@ -475,7 +697,12 @@ async function restore(file) {
   render();
   refreshStatus();
   const n = updateCounts();
-  toast(`Restored ${n} ${n === 1 ? "app" : "apps"} from backup`);
+  toast(
+    `${t("restore")} • ${n} ${n === 1
+      ? t("app")
+      : t("apps")
+    }`
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -489,28 +716,73 @@ function setStatus(state, text) {
 
 async function refreshStatus() {
   const count = updateCounts();
+
   if (count === 0) {
-    setStatus("idle", "No apps detached yet");
+    setStatus(
+      "idle",
+      t("status_idle")
+    );
     return;
   }
-  const noun = count === 1 ? "app" : "apps";
-  const [st, log] = await Promise.all([exec(`${CLI} status`), exec("logcat -d -s PlayDetach | tail -n 1")]);
+
+  const noun =
+    count === 1
+      ? t("app")
+      : t("apps");
+
+  const [st, log] =
+    await Promise.all([
+      exec(`${CLI} status`),
+      exec(
+        "logcat -d -s PlayDetach | tail -n 1"
+      )
+    ]);
 
   const kv = {};
+
   for (const l of lines(st.stdout)) {
-    const m = l.match(/^(\w+)=(\d+)$/);
-    if (m) kv[m[1]] = Number(m[2]);
+    const m =
+      l.match(/^(\w+)=(\d+)$/);
+
+    if (m)
+      kv[m[1]] = Number(m[2]);
   }
+
   const last = log.stdout.trim();
 
   if (/\sE PlayDetach\b/.test(last)) {
-    setStatus("error", `Problem: ${last.replace(/^.*PlayDetach:\s*/, "")}`);
-  } else if (kv.loaded > 0 && kv.loaded >= kv.list_changed) {
-    setStatus("ok", `Active in Play Store - ${count} ${noun} detached`);
-  } else if (!kv.loaded && /active in Play Store/.test(last)) {
-    setStatus("ok", `Active in Play Store - ${count} ${noun} detached`);
-  } else {
-    setStatus("warn", `${count} ${noun} detached - applies when the Play Store opens`);
+    setStatus(
+      "error",
+      `${t("problem")}: ${last.replace(
+        /^.*PlayDetach:\s*/,
+        ""
+      )
+      }`
+    );
+  }
+  else if (
+    kv.loaded > 0 &&
+    kv.loaded >= kv.list_changed
+  ) {
+    setStatus(
+      "ok",
+      `${t("active_in_play_store")} • ${count} ${noun}`
+    );
+  }
+  else if (
+    !kv.loaded &&
+    /active in Play Store/.test(last)
+  ) {
+    setStatus(
+      "ok",
+      `${t("active_in_play_store")} • ${count} ${noun}`
+    );
+  }
+  else {
+    setStatus(
+      "warn",
+      `${count} ${noun} • ${t("applies_when_open")}`
+    );
   }
 }
 
@@ -558,7 +830,12 @@ function setupUi() {
     confirm.hidden = false;
   };
   $("reattach-all").addEventListener("click", () =>
-    ask("Re-attach all apps?", "The Play Store will see every detached app again and offer updates for them.", "Re-attach all", reattachAll)
+    ask(
+      t("confirm_reattach_title"),
+      t("confirm_reattach_text"),
+      t("reattach_all"),
+      reattachAll
+    )
   );
   confirmAsk = ask;
   $("backup").addEventListener("click", () => openPicker("save"));
@@ -581,25 +858,41 @@ function setupUi() {
 }
 
 async function main() {
+  await initLanguage();
+
   setupUi();
 
   if (!ksu) {
-    setStatus("error", "Open this page from your root manager");
+    setStatus(
+      "error",
+      t("open_root_manager")
+    );
+
     listEl.replaceChildren();
     return;
   }
 
-  exec(`sed -n 's/^version=//p' ${MODDIR}/module.prop`).then((r) => {
+  exec(
+    `sed -n 's/^version=//p' ${MODDIR}/module.prop`
+  ).then((r) => {
     const v = r.stdout.trim();
-    if (v) $("version").textContent = `Zygisk module - ${v}`;
+
+    if (v) {
+      $("version").textContent =
+        `${t("zygisk_module")} • ${v}`;
+    }
   });
 
   try {
     await loadPackages();
     await loadDetached();
   } catch (e) {
-    setStatus("error", String(e.message || e));
+    setStatus(
+      "error",
+      String(e.message || e)
+    );
   }
+
   render();
   refreshStatus();
 }
