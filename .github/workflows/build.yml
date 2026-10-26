@@ -1,0 +1,37 @@
+name: Build Play Detach
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Make script executable
+        run: chmod +x build.sh
+
+      - name: Build module
+        run: ./build.sh
+
+      - name: Show generated files
+        run: ls -lah
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-detach-build
+          path: |
+            *.zip
+            release/*.zip
+            out/*.zip
+          if-no-files-found: warn
