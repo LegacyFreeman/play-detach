@@ -5,6 +5,14 @@ on:
   push:
     tags:
       - "v*"
+      
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version"
+        required: true
+        default: "v1.0.3"
 
 permissions:
   contents: write
