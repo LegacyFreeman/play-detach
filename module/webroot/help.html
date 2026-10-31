@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Play Detach - Help</title>
+  <title data-i18n="help_page_title">Play Detach - Help</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,10 +19,10 @@
         <polygon points="14.5,18 14.5,24 19.6,21" fill="#22062f"/>
       </svg>
       <div class="title">
-        <h1>Help</h1>
+        <h1 data-i18n="help_title">Help</h1>
         <div class="sub">Play Detach</div>
       </div>
-      <a class="icon-btn" id="back" href="index.html" aria-label="Back to apps">
+      <a class="icon-btn" id="back" href="index.html" aria-label="Back to apps" data-i18n-aria="back_to_apps">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       </a>
     </div>
@@ -30,95 +30,95 @@
 
   <main class="help">
     <section>
-      <h2>What it does</h2>
-      <p>The Play Store updates apps on its own, even when auto-update is turned off for them. Play Detach hides the apps you choose from the Play Store, so it never offers or installs updates for them.</p>
-      <p>The apps themselves are not changed. They keep working, and you can update them by hand at any time.</p>
+      <h2 data-i18n="help_what_it_does_title">What it does</h2>
+      <p data-i18n="help_what_it_does_p1">The Play Store updates apps on its own, even when auto-update is turned off for them. Play Detach hides the apps you choose from the Play Store, so it never offers or installs updates for them.</p>
+      <p data-i18n="help_what_it_does_p2">The apps themselves are not changed. They keep working, and you can update them by hand at any time.</p>
     </section>
 
     <section>
-      <h2>How to use it</h2>
+      <h2 data-i18n="help_how_to_use_title">How to use it</h2>
       <ol>
-        <li>Find the app in <strong>User apps</strong> or <strong>System apps</strong>. The search box matches app names and package names.</li>
-        <li>Turn on the switch next to it. The change applies right away and the Play Store is restarted, no reboot needed.</li>
-        <li>The <strong>Detached</strong> tab lists every detached app. Turn a switch off to let the Play Store see that app again.</li>
+        <li data-i18n="help_how_to_use_li1">Find the app in <strong>User apps</strong> or <strong>System apps</strong>. The search box matches app names and package names.</li>
+        <li data-i18n="help_how_to_use_li2">Turn on the switch next to it. The change applies right away and the Play Store is restarted, no reboot needed.</li>
+        <li data-i18n="help_how_to_use_li3">The <strong>Detached</strong> tab lists every detached app. Turn a switch off to let the Play Store see that app again.</li>
       </ol>
-      <p>Apps marked <strong>Not installed</strong> are still on your list but no longer on the phone. Turn them off to remove them from the list.</p>
+      <p data-i18n="help_how_to_use_p">Apps marked <strong>Not installed</strong> are still on your list but no longer on the phone. Turn them off to remove them from the list.</p>
     </section>
 
     <section>
-      <h2>Backup and restore</h2>
-      <p>Open the <strong>Detached</strong> tab. <strong>Back up list</strong> opens your internal storage: pick a folder, change the file name if you like and tap <strong>Save here</strong>. <strong>Restore backup</strong> opens the same browser: go to the folder and tap the backup file.</p>
-      <p>Restoring replaces the current list with the one in the file. Backups are plain text files with one package per line, so you can also edit them or use them as <code>detach.txt</code>. They stay on your storage when the module is removed.</p>
+      <h2 data-i18n="help_backup_title">Backup and restore</h2>
+      <p data-i18n="help_backup_p1">Open the <strong>Detached</strong> tab. <strong>Back up list</strong> opens your internal storage: pick a folder, change the file name if you like and tap <strong>Save here</strong>. <strong>Restore backup</strong> opens the same browser: go to the folder and tap the backup file.</p>
+      <p data-i18n="help_backup_p2">Restoring replaces the current list with the one in the file. Backups are plain text files with one package per line, so you can also edit them or use them as <code>detach.txt</code>. They stay on your storage when the module is removed.</p>
     </section>
 
     <section>
-      <h2>Status line</h2>
+      <h2 data-i18n="help_status_line_title">Status line</h2>
       <ul>
-        <li><strong>Active in Play Store</strong> - the module is working in the Play Store.</li>
-        <li><strong>Applies when the Play Store opens</strong> - the list changed after the Play Store last started; it is saved and loads the next time the Play Store opens.</li>
-        <li><strong>Problem</strong> - the module could not start in the Play Store. The message shows the reason; see Troubleshooting below.</li>
+        <li><strong data-i18n="help_status_active">Active in Play Store</strong> - <span data-i18n="help_status_active_desc">the module is working in the Play Store.</span></li>
+        <li><strong data-i18n="help_status_applies">Applies when the Play Store opens</strong> - <span data-i18n="help_status_applies_desc">the list changed after the Play Store last started; it is saved and loads the next time the Play Store opens.</span></li>
+        <li><strong data-i18n="help_status_problem">Problem</strong> - <span data-i18n="help_status_problem_desc">the module could not start in the Play Store. The message shows the reason; see Troubleshooting below.</span></li>
       </ul>
-      <p><strong>Orange right after a change is normal.</strong> When you turn a switch on or off, the Play Store is closed and the new list is saved. The dot stays orange until the Play Store starts again and loads the new list, then it turns green. Open the Play Store once, or just wait until it starts in the background.</p>
+      <p><strong data-i18n="help_status_orange_note">Orange right after a change is normal.</strong> <span data-i18n="help_status_orange_desc">When you turn a switch on or off, the Play Store is closed and the new list is saved. The dot stays orange until the Play Store starts again and loads the new list, then it turns green. Open the Play Store once, or just wait until it starts in the background.</span></p>
     </section>
 
     <section>
-      <h2>Command line</h2>
-      <p>Everything in this page can also be done from a terminal with root. In Termux the short command <code>play-detach</code> is installed as well.</p>
+      <h2 data-i18n="help_cmd_line_title">Command line</h2>
+      <p data-i18n="help_cmd_line_p">Everything in this page can also be done from a terminal with root. In Termux the short command <code>play-detach</code> is installed as well.</p>
       <div class="cmds">
-        <div class="cmd"><span>Show detached apps</span><pre>su -c '/data/adb/modules/play-detach/play-detach list'</pre></div>
-        <div class="cmd"><span>Detach one or more apps</span><pre>su -c '/data/adb/modules/play-detach/play-detach add com.example.app'</pre></div>
-        <div class="cmd"><span>Re-attach an app</span><pre>su -c '/data/adb/modules/play-detach/play-detach remove com.example.app'</pre></div>
-        <div class="cmd"><span>Re-attach everything</span><pre>su -c '/data/adb/modules/play-detach/play-detach clear'</pre></div>
-        <div class="cmd"><span>Check if the current list is active</span><pre>su -c '/data/adb/modules/play-detach/play-detach status'</pre></div>
-        <div class="cmd"><span>Back up the list to Download</span><pre>su -c '/data/adb/modules/play-detach/play-detach backup'</pre></div>
-        <div class="cmd"><span>Restore a backup</span><pre>su -c '/data/adb/modules/play-detach/play-detach restore /sdcard/Download/play-detach-backup.txt'</pre></div>
-        <div class="cmd"><span>All commands</span><pre>su -c '/data/adb/modules/play-detach/play-detach help'</pre></div>
+        <div class="cmd"><span data-i18n="cmd_show">Show detached apps</span><pre>su -c '/data/adb/modules/play-detach/play-detach list'</pre></div>
+        <div class="cmd"><span data-i18n="cmd_add">Detach one or more apps</span><pre>su -c '/data/adb/modules/play-detach/play-detach add com.example.app'</pre></div>
+        <div class="cmd"><span data-i18n="cmd_remove">Re-attach an app</span><pre>su -c '/data/adb/modules/play-detach/play-detach remove com.example.app'</pre></div>
+        <div class="cmd"><span data-i18n="cmd_clear">Re-attach everything</span><pre>su -c '/data/adb/modules/play-detach/play-detach clear'</pre></div>
+        <div class="cmd"><span data-i18n="cmd_status">Check if the current list is active</span><pre>su -c '/data/adb/modules/play-detach/play-detach status'</pre></div>
+        <div class="cmd"><span data-i18n="cmd_backup">Back up the list to Download</span><pre>su -c '/data/adb/modules/play-detach/play-detach backup'</pre></div>
+        <div class="cmd"><span data-i18n="cmd_restore">Restore a backup</span><pre>su -c '/data/adb/modules/play-detach/play-detach restore /sdcard/Download/play-detach-backup.txt'</pre></div>
+        <div class="cmd"><span data-i18n="cmd_help">All commands</span><pre>su -c '/data/adb/modules/play-detach/play-detach help'</pre></div>
       </div>
     </section>
 
     <section>
-      <h2>Detach apps at install time</h2>
-      <p>Put a file named <code>detach.txt</code> in the root of the module zip, with one package name per line. The apps in it are detached while the module installs. Lines starting with <code>#</code> are ignored.</p>
+      <h2 data-i18n="help_install_time_title">Detach apps at install time</h2>
+      <p data-i18n="help_install_time_p">Put a file named <code>detach.txt</code> in the root of the module zip, with one package name per line. The apps in it are detached while the module installs. Lines starting with <code>#</code> are ignored.</p>
     </section>
 
     <section>
-      <h2>How it works</h2>
-      <p>Play Detach is a Zygisk module. It loads only into the Play Store process. When the Play Store asks the system whether a detached app is installed, the module changes that request, so the system answers that the app does not exist.</p>
-      <p>The list is stored in <code>/data/adb/play-detach/detach.list</code>, one package per line. Nothing outside the Play Store is touched.</p>
+      <h2 data-i18n="help_how_it_works_title">How it works</h2>
+      <p data-i18n="help_how_it_works_p1">Play Detach is a Zygisk module. It loads only into the Play Store process. When the Play Store asks the system whether a detached app is installed, the module changes that request, so the system answers that the app does not exist.</p>
+      <p data-i18n="help_how_it_works_p2">The list is stored in <code>/data/adb/play-detach/detach.list</code>, one package per line. Nothing outside the Play Store is touched.</p>
     </section>
 
     <section>
-      <h2>Requirements</h2>
+      <h2 data-i18n="help_requirements_title">Requirements</h2>
       <ul>
-        <li>arm64 device with Android 10 or newer</li>
-        <li>A working Zygisk: ReZygisk, Zygisk Next or NeoZygisk on KernelSU, SukiSU-Ultra or APatch, or Zygisk enabled in Magisk</li>
-        <li>zygisk-detach must not run at the same time, both modules change the same Play Store calls. If it is installed, Play Detach copies its detached apps during install and offers to remove it (Vol+), keep it (Vol-), or disables it if no key is pressed</li>
+        <li data-i18n="help_req_1">arm64 device with Android 10 or newer</li>
+        <li data-i18n="help_req_2">A working Zygisk: ReZygisk, Zygisk Next or NeoZygisk on KernelSU, SukiSU-Ultra or APatch, or Zygisk enabled in Magisk</li>
+        <li data-i18n="help_req_3">zygisk-detach must not run at the same time, both modules change the same Play Store calls. If it is installed, Play Detach copies its detached apps during install and offers to remove it (Vol+), keep it (Vol-), or disables it if no key is pressed</li>
       </ul>
     </section>
 
     <section>
-      <h2>Troubleshooting</h2>
-      <p>If an app still shows up in the Play Store, close the Play Store, clear its cache in system settings and open it again. Then check the module log:</p>
+      <h2 data-i18n="help_troubleshooting_title">Troubleshooting</h2>
+      <p data-i18n="help_troubleshooting_p1">If an app still shows up in the Play Store, close the Play Store, clear its cache in system settings and open it again. Then check the module log:</p>
       <pre>su -c 'logcat -d -s PlayDetach'</pre>
-      <p>A line with <strong>active in Play Store</strong> means the module works. Any other message names the step that failed, for example a missing Zygisk or a change in a new Android version.</p>
+      <p data-i18n="help_troubleshooting_p2">A line with <strong>active in Play Store</strong> means the module works. Any other message names the step that failed, for example a missing Zygisk or a change in a new Android version.</p>
     </section>
 
     <section>
-      <h2>How it is built</h2>
+      <h2 data-i18n="help_built_title">How it is built</h2>
       <ul>
-        <li><strong>Zygisk library</strong> - C++20, built with Android NDK r29 for arm64-v8a. Uses Zygisk API v4, so it runs on ReZygisk, Zygisk Next, NeoZygisk and Magisk. No third-party libraries. Every read from Play Store binder data is bounds-checked, and on anything unexpected the call is passed through untouched.</li>
-        <li><strong>Command line tool</strong> - a plain shell script. The list is written to a temporary file and then swapped in, so the Play Store never reads a half-written list.</li>
-        <li><strong>WebUI</strong> - plain HTML, CSS and JavaScript with no frameworks and no build step. App names and icons come from the root manager's WebUI API. Fonts are bundled, so it works offline.</li>
-        <li><strong>Build</strong> - one <code>build.sh</code> script builds the whole module from source.</li>
+        <li><strong data-i18n="help_built_zygisk">Zygisk library</strong> - <span data-i18n="help_built_zygisk_desc">C++20, built with Android NDK r29 for arm64-v8a. Uses Zygisk API v4, so it runs on ReZygisk, Zygisk Next, NeoZygisk and Magisk. No third-party libraries. Every read from Play Store binder data is bounds-checked, and on anything unexpected the call is passed through untouched.</span></li>
+        <li><strong data-i18n="help_built_cli">Command line tool</strong> - <span data-i18n="help_built_cli_desc">a plain shell script. The list is written to a temporary file and then swapped in, so the Play Store never reads a half-written list.</span></li>
+        <li><strong data-i18n="help_built_webui">WebUI</strong> - <span data-i18n="help_built_webui_desc">plain HTML, CSS and JavaScript with no frameworks and no build step. App names and icons come from the root manager's WebUI API. Fonts are bundled, so it works offline.</span></li>
+        <li><strong data-i18n="help_built_build">Build</strong> - <span data-i18n="help_built_build_desc">one <code>build.sh</code> script builds the whole module from source.</span></li>
       </ul>
     </section>
 
     <section>
-      <h2>Tested on</h2>
-      <p>Poco F6 Pro with the Xiaomi.eu ROM (Android 16), SukiSU-Ultra and ReZygisk. Other devices should work but were not tested.</p>
+      <h2 data-i18n="help_tested_title">Tested on</h2>
+      <p data-i18n="help_tested_p">Poco F6 Pro with the Xiaomi.eu ROM (Android 16), SukiSU-Ultra and ReZygisk. Other devices should work but were not tested.</p>
     </section>
 
-    <p class="foot">Play Detach by Tears Burn. Based on <a href="https://github.com/j-hc/zygisk-detach">zygisk-detach</a> by j-hc. Apache License 2.0.</p>
+    <p class="foot" data-i18n="footer_text">Play Detach by Tears Burn. Based on <a href="https://github.com/j-hc/zygisk-detach">zygisk-detach</a> by j-hc. Apache License 2.0.</p>
   </main>
 
   <div class="toast" id="toast" role="status"></div>
