@@ -215,8 +215,8 @@ const translations = {
     help_built_webui_desc: "plain HTML, CSS and JavaScript with no frameworks and no build step. App names and icons come from the root manager's WebUI API. Fonts are bundled, so it works offline.",
     help_built_build: "Build",
     help_built_build_desc: "one <code>build.sh</code> script builds the whole module from source.",
-    help_tested_title: "Tested on",
-    help_tested_p: "Poco F6 Pro with the Xiaomi.eu ROM (Android 16), SukiSU-Ultra and ReZygisk. Other devices should work but were not tested.",
+    help_tested_title: "Tested on:",
+    help_tested_p: "Poco F6 Pro with the Xiaomi.eu ROM (Android 16), SukiSU-Ultra and ReZygisk/Xiaomi Redmi Note 8T with the InfinityX ROM (Android 17) BakaSU and ZygiskNext. Other devices should work but were not tested.",
     footer_text: "Play Detach by Tears Burn. Based on <a href=\"https://github.com/j-hc/zygisk-detach\">zygisk-detach</a> by j-hc. Apache License 2.0."
   },
 
@@ -365,7 +365,7 @@ const translations = {
     
     help_page_title: "Play Detach - Справка",
     back_to_apps: "Назад к приложениям",
-    help_what_it_does_title: "Что это делает",
+    help_what_it_does_title: "Как это работает?",
     help_what_it_does_p1: "Play Маркет обновляет приложения самостоятельно, даже если для них отключено автообновление. Play Detach скрывает выбранные вами приложения от Play Маркета, поэтому он никогда не предлагает и не устанавливает для них обновления.",
     help_what_it_does_p2: "Сами приложения не изменяются. Они продолжают работать, и вы можете обновлять их вручную в любое время.",
     help_how_to_use_title: "Как пользоваться",
@@ -416,8 +416,8 @@ const translations = {
     help_built_webui_desc: "чистый HTML, CSS и JavaScript без фреймворков и этапов сборки. Имена приложений и иконки поступают из WebUI API root-менеджера. Шрифты встроены локально, поэтому всё работает офлайн.",
     help_built_build: "Сборка",
     help_built_build_desc: "один скрипт <code>build.sh</code> собирает весь модуль из исходного кода.",
-    help_tested_title: "Проверено на",
-    help_tested_p: "Poco F6 Pro с прошивкой Xiaomi.eu (Android 16), SukiSU-Ultra и ReZygisk. На других устройствах тоже должно работать, но они не тестировались.",
+    help_tested_title: "Протестировано на:",
+    help_tested_p: "Poco F6 Pro с прошивкой Xiaomi.eu (Android 16), SukiSU-Ultra и ReZygisk/Xiaomi Redmi Note 8T с прошивкой InfinityX (Android 17) BakaSU и ZygiskNext. На других устройствах тоже должно работать, но они не тестировались.",
     footer_text: "Play Detach от Tears Burn. Основано на <a href=\"https://github.com/j-hc/zygisk-detach\">zygisk-detach</a> от j-hc. Apache License 2.0."
   }
 };
