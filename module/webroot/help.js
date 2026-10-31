@@ -44,6 +44,26 @@ function exec(cmd) {
   });
 }
 
+function applyTranslations() {
+  // Переводим текстовое содержимое элементов с атрибутом data-i18n
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    const translated = t(key);
+    if (translated) {
+      el.innerHTML = translated;
+    }
+  });
+
+  // Переводим атрибуты aria-label для доступности
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-aria");
+    const translated = t(key);
+    if (translated) {
+      el.setAttribute("aria-label", translated);
+    }
+  });
+}
+
 async function init() {
   await detectLanguage(exec);
 
